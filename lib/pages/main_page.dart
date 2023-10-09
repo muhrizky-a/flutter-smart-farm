@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_smart_farm/pages/settings_page.dart';
 import 'package:flutter_smart_farm/widgets/sensor_status_card.dart';
-
 import '../constant.dart';
+import '../cubit/farm_data_cubit.dart';
+import '../models/farm_data.dart';
 import '../widgets/sensor_control_card.dart';
+import '../widgets/server_connection_status_card.dart';
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  FarmData? farmData;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Widget banner() {
     return Container(
@@ -57,12 +73,23 @@ class MainPage extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(borderRadius),
                 ),
-                child: const Text(
-                  "BAIK",
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: StreamBuilder(
+                  stream: context.read<FarmDataCubit>().getClient().updates,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      farmData = context
+                          .read<FarmDataCubit>()
+                          .getFarmDataFromStream(snapshot.data!);
+                    }
+
+                    return Text(
+                      farmData?.status ?? "-",
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -74,33 +101,47 @@ class MainPage extends StatelessWidget {
 
   Widget monitoring() {
     return GridView.count(
-      shrinkWrap: true,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      crossAxisCount: 2,
-      primary: false,
-      physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        SensorStatusCard(
-          title: "Kelembaban Tanah",
-          value: "550",
-          imageUrl: "assets/soil-moisture.png",
-          backgroundColor: greenMainColor,
-        ),
-        SensorStatusCard(
-          title: "Suhu Udara",
-          value: "27°C",
-          imageUrl: "assets/temperature.png",
-          backgroundColor: greenMainColor,
-        ),
-        SensorStatusCard(
-          title: "Kelembaban Udara",
-          value: "65 RH",
-          imageUrl: "assets/humidity.png",
-          backgroundColor: greenMainColor,
-        ),
-      ],
-    );
+        shrinkWrap: true,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        crossAxisCount: 2,
+        primary: false,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          StreamBuilder(
+            stream: context.read<FarmDataCubit>().getClient().updates,
+            builder: (context, snapshot) {
+              return SensorStatusCard(
+                title: "Kelembaban Tanah",
+                value: farmData?.soilHumidity.toString() ?? "-",
+                imageUrl: "assets/soil-moisture.png",
+                backgroundColor: greenMainColor,
+              );
+            },
+          ),
+          StreamBuilder(
+            stream: context.read<FarmDataCubit>().getClient().updates,
+            builder: (context, snapshot) {
+              return SensorStatusCard(
+                title: "Suhu Udara",
+                value: farmData != null ? "${farmData?.temperature}°C" : "-",
+                imageUrl: "assets/temperature.png",
+                backgroundColor: greenMainColor,
+              );
+            },
+          ),
+          StreamBuilder(
+            stream: context.read<FarmDataCubit>().getClient().updates,
+            builder: (context, snapshot) {
+              return SensorStatusCard(
+                title: "Kelembaban Udara",
+                value: farmData != null ? "${farmData?.airHumidity} RH" : "-",
+                imageUrl: "assets/humidity.png",
+                backgroundColor: greenMainColor,
+              );
+            },
+          ),
+        ]);
   }
 
   Widget control() {
@@ -112,19 +153,73 @@ class MainPage extends StatelessWidget {
       primary: false,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        SensorControlCard(
-          title: "Sprinkle Air",
-          value: "OFF",
-          backgroundColor: Colors.redAccent,
-          onTap: () {
-            debugPrint("test");
+        StreamBuilder(
+          stream: context.read<FarmDataCubit>().getClient().updates,
+          builder: (context, snapshot) {
+            bool isSprinklerEnabled() {
+              if (farmData != null) {
+                if (farmData!.sprinklerEnabled) return true;
+              }
+              return false;
+            }
+
+            return SensorControlCard(
+              title: "Sprinkle Air",
+              value: isSprinklerEnabled() ? "ON" : "OFF",
+              backgroundColor:
+                  isSprinklerEnabled() ? greenMainColor : Colors.redAccent,
+              onTap: () {
+                FarmData? farmData =
+                    context.read<FarmDataCubit>().getFarmData();
+                if (farmData != null) {
+                  FarmData newFarmData = FarmData.fromJson({
+                    "status": farmData.status,
+                    "soilHumidity": farmData.soilHumidity,
+                    "temperature": farmData.temperature,
+                    "airHumidity": farmData.airHumidity,
+                    "sprinklerEnabled": !farmData.sprinklerEnabled,
+                    "lampEnabled": farmData.lampEnabled,
+                  });
+
+                  context.read<FarmDataCubit>().publish(newFarmData);
+                }
+              },
+            );
           },
         ),
-        SensorControlCard(
-          title: "Lampu",
-          value: "ON",
-          backgroundColor: greenMainColor,
-          onTap: () {},
+        StreamBuilder(
+          stream: context.read<FarmDataCubit>().getClient().updates,
+          builder: (context, snapshot) {
+            bool isLampEnabled() {
+              if (farmData != null) {
+                if (farmData!.lampEnabled) return true;
+              }
+              return false;
+            }
+
+            return SensorControlCard(
+              title: "Lampu",
+              value: isLampEnabled() ? "ON" : "OFF",
+              backgroundColor:
+                  isLampEnabled() ? greenMainColor : Colors.redAccent,
+              onTap: () {
+                FarmData? farmData =
+                    context.read<FarmDataCubit>().getFarmData();
+                if (farmData != null) {
+                  FarmData newFarmData = FarmData.fromJson({
+                    "status": farmData.status,
+                    "soilHumidity": farmData.soilHumidity,
+                    "temperature": farmData.temperature,
+                    "airHumidity": farmData.airHumidity,
+                    "sprinklerEnabled": farmData.sprinklerEnabled,
+                    "lampEnabled": !farmData.lampEnabled,
+                  });
+
+                  context.read<FarmDataCubit>().publish(newFarmData);
+                }
+              },
+            );
+          },
         ),
       ],
     );
@@ -132,6 +227,7 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<FarmDataCubit>();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: greenMainColor,
@@ -139,43 +235,56 @@ class MainPage extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: "Tentang",
-            icon: const Icon(Icons.info),
-            onPressed: () {},
+            icon: const Icon(Icons.settings),
+            // icon: const Icon(Icons.info),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (c) => const SettingsPage(),
+                ),
+              );
+            },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(padding * 2),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              banner(),
-              const SizedBox(height: 16),
-              const Text(
-                "Monitoring",
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const ServerConnectionStatusCard(),
+            // const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.all(padding * 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  banner(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Monitoring",
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  monitoring(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Kontrol",
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  control(),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 8),
-              monitoring(),
-              const SizedBox(height: 16),
-              const Text(
-                "Kontrol",
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              control(),
-              const SizedBox(height: 16),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -36,16 +36,20 @@ class SensorStatusCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Container(
-                width: 75,
-                height: 75,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(imageUrl),
