@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_smart_farm/pages/settings_page.dart';
 import 'package:flutter_smart_farm/widgets/sensor_status_card.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import '../constant.dart';
 import '../cubit/farm_data_cubit.dart';
 import '../models/farm_data.dart';
@@ -16,11 +19,12 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  FarmData? farmData;
+  late FarmData farmData;
 
   @override
   void initState() {
     super.initState();
+    farmData = FarmData();
   }
 
   Widget banner() {
@@ -74,16 +78,23 @@ class _MainPageState extends State<MainPage> {
                   borderRadius: BorderRadius.circular(borderRadius),
                 ),
                 child: StreamBuilder(
-                  stream: context.read<FarmDataCubit>().getClient().updates,
+                  stream: context.read<FarmDataCubit>().subscribe("farmStatus"),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      farmData = context
-                          .read<FarmDataCubit>()
-                          .getFarmDataFromStream(snapshot.data!);
+                      try {
+                        String rawData = context
+                            .read<FarmDataCubit>()
+                            .getRawData(snapshot.data!);
+
+                        Map<String, dynamic> data = jsonDecode(rawData);
+                        farmData.status = data["farmStatus"];
+                      } catch (e) {
+                        debugPrint(e.toString());
+                      }
                     }
 
                     return Text(
-                      farmData?.status ?? "-",
+                      farmData.status,
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
@@ -109,33 +120,69 @@ class _MainPageState extends State<MainPage> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           StreamBuilder(
-            stream: context.read<FarmDataCubit>().getClient().updates,
+            stream: context.read<FarmDataCubit>().subscribe("soilHumidity"),
             builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                try {
+                  String rawData =
+                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                  Map<String, dynamic> data = jsonDecode(rawData);
+                  farmData.soilHumidity = data["soilHumidity"];
+                } catch (e) {
+                  debugPrint(e.toString());
+                }
+              }
+
               return SensorStatusCard(
                 title: "Kelembaban Tanah",
-                value: farmData?.soilHumidity.toString() ?? "-",
+                value: farmData.soilHumidity.toString(),
                 imageUrl: "assets/soil-moisture.png",
                 backgroundColor: greenMainColor,
               );
             },
           ),
           StreamBuilder(
-            stream: context.read<FarmDataCubit>().getClient().updates,
+            stream: context.read<FarmDataCubit>().subscribe("airTemperature"),
             builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                try {
+                  String rawData =
+                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                  Map<String, dynamic> data = jsonDecode(rawData);
+                  farmData.temperature = data["airTemperature"];
+                } catch (e) {
+                  debugPrint(e.toString());
+                }
+              }
+
               return SensorStatusCard(
                 title: "Suhu Udara",
-                value: farmData != null ? "${farmData?.temperature}°C" : "-",
+                value: "${farmData.temperature}°C",
                 imageUrl: "assets/temperature.png",
                 backgroundColor: greenMainColor,
               );
             },
           ),
           StreamBuilder(
-            stream: context.read<FarmDataCubit>().getClient().updates,
+            stream: context.read<FarmDataCubit>().subscribe("airHumidity"),
             builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                try {
+                  String rawData =
+                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                  Map<String, dynamic> data = jsonDecode(rawData);
+                  farmData.airHumidity = data["airHumidity"];
+                } catch (e) {
+                  debugPrint(e.toString());
+                }
+              }
+
               return SensorStatusCard(
                 title: "Kelembaban Udara",
-                value: farmData != null ? "${farmData?.airHumidity} RH" : "-",
+                value: "${farmData.airHumidity} RH",
                 imageUrl: "assets/humidity.png",
                 backgroundColor: greenMainColor,
               );
@@ -154,12 +201,23 @@ class _MainPageState extends State<MainPage> {
       physics: const NeverScrollableScrollPhysics(),
       children: [
         StreamBuilder(
-          stream: context.read<FarmDataCubit>().getClient().updates,
+          stream: context.read<FarmDataCubit>().subscribe("sprinklerEnabled"),
           builder: (context, snapshot) {
-            bool isSprinklerEnabled() {
-              if (farmData != null) {
-                if (farmData!.sprinklerEnabled) return true;
+            String topic = "sprinklerEnabled";
+            if (snapshot.hasData) {
+              try {
+                String rawData =
+                    context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                Map<String, dynamic> data = jsonDecode(rawData);
+                farmData.sprinklerEnabled = data[topic];
+              } catch (e) {
+                debugPrint(e.toString());
               }
+            }
+
+            bool isSprinklerEnabled() {
+              if (farmData.sprinklerEnabled) return true;
               return false;
             }
 
@@ -169,31 +227,37 @@ class _MainPageState extends State<MainPage> {
               backgroundColor:
                   isSprinklerEnabled() ? greenMainColor : Colors.redAccent,
               onTap: () {
-                FarmData? farmData =
-                    context.read<FarmDataCubit>().getFarmData();
-                if (farmData != null) {
-                  FarmData newFarmData = FarmData.fromJson({
-                    "status": farmData.status,
-                    "soilHumidity": farmData.soilHumidity,
-                    "temperature": farmData.temperature,
-                    "airHumidity": farmData.airHumidity,
-                    "sprinklerEnabled": !farmData.sprinklerEnabled,
-                    "lampEnabled": farmData.lampEnabled,
-                  });
-
-                  context.read<FarmDataCubit>().publish(newFarmData);
-                }
+                context.read<FarmDataCubit>().publish(
+                      topic,
+                      farmData.toJson(
+                        key: topic,
+                        value: !farmData.sprinklerEnabled,
+                      ),
+                    );
               },
             );
           },
         ),
         StreamBuilder(
-          stream: context.read<FarmDataCubit>().getClient().updates,
+          stream: context.read<FarmDataCubit>().subscribe("lampEnabled"),
           builder: (context, snapshot) {
-            bool isLampEnabled() {
-              if (farmData != null) {
-                if (farmData!.lampEnabled) return true;
+            String topic = "lampEnabled";
+
+            if (snapshot.hasData) {
+              try {
+                String rawData =
+                    context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                Map<String, dynamic> data = jsonDecode(rawData);
+                farmData.lampEnabled = data[topic];
+              } catch (e) {
+                debugPrint(e.toString());
               }
+            }
+
+            bool isLampEnabled() {
+              if (farmData.lampEnabled) return true;
+
               return false;
             }
 
@@ -203,20 +267,13 @@ class _MainPageState extends State<MainPage> {
               backgroundColor:
                   isLampEnabled() ? greenMainColor : Colors.redAccent,
               onTap: () {
-                FarmData? farmData =
-                    context.read<FarmDataCubit>().getFarmData();
-                if (farmData != null) {
-                  FarmData newFarmData = FarmData.fromJson({
-                    "status": farmData.status,
-                    "soilHumidity": farmData.soilHumidity,
-                    "temperature": farmData.temperature,
-                    "airHumidity": farmData.airHumidity,
-                    "sprinklerEnabled": farmData.sprinklerEnabled,
-                    "lampEnabled": !farmData.lampEnabled,
-                  });
-
-                  context.read<FarmDataCubit>().publish(newFarmData);
-                }
+                context.read<FarmDataCubit>().publish(
+                      topic,
+                      farmData.toJson(
+                        key: topic,
+                        value: !farmData.lampEnabled,
+                      ),
+                    );
               },
             );
           },
@@ -227,7 +284,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    context.read<FarmDataCubit>();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: greenMainColor,
@@ -236,7 +292,6 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             tooltip: "Tentang",
             icon: const Icon(Icons.settings),
-            // icon: const Icon(Icons.info),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -247,46 +302,49 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const ServerConnectionStatusCard(),
-            // const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.all(padding * 2),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  banner(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Monitoring",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
+      // Set state to rebuild screen
+      body: BlocBuilder<FarmDataCubit, bool>(builder: (_, stream) {
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              const ServerConnectionStatusCard(),
+              // const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(padding * 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    banner(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Monitoring",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  monitoring(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Kontrol",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 8),
+                    monitoring(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Kontrol",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  control(),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 8),
+                    control(),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

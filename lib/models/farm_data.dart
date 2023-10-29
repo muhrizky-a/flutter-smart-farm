@@ -1,42 +1,27 @@
 class FarmData {
   FarmData({
-    required this.status,
-    required this.soilHumidity,
-    required this.temperature,
-    required this.airHumidity,
-    required this.sprinklerEnabled,
-    required this.lampEnabled,
+    this.status = '',
+    this.soilHumidity = 0,
+    this.temperature = 0,
+    this.airHumidity = 0,
+    this.sprinklerEnabled = false,
+    this.lampEnabled = false,
   });
 
-  final String status;
-  final int soilHumidity;
-  final int temperature;
-  final int airHumidity;
-  final bool sprinklerEnabled;
-  final bool lampEnabled;
+  String status;
+  int soilHumidity;
+  int temperature;
+  int airHumidity;
+  bool sprinklerEnabled;
+  bool lampEnabled;
 
-  factory FarmData.fromJson(Map<String, dynamic> json) {
-   
-
-    return FarmData(
-      status: json['status'],
-      soilHumidity: json['soilHumidity'],
-      temperature: json['temperature'],
-      airHumidity: json['airHumidity'],
-      sprinklerEnabled: json['sprinklerEnabled'],
-      lampEnabled: json['lampEnabled'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson({required String key, required dynamic value}) {
     final data = <String, dynamic>{};
-    data['status'] = status;
-    data['soilHumidity'] = soilHumidity;
-    data['temperature'] = temperature;
-    data['airHumidity'] = airHumidity;
-    data['sprinklerEnabled'] = sprinklerEnabled;
-    data['lampEnabled'] = lampEnabled;
 
+    data[key] = value;
+    print(data);
+    print(data[key]);
+    print("");
     return data;
   }
 }

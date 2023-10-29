@@ -2,54 +2,25 @@
 
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
-import '../models/farm_data.dart';
-import '../services/farm_data_service.dart';
+import '../use_case/farm_data_use_case.dart';
 
-class FarmDataCubit extends Cubit<Stream<dynamic>> {
-  FarmDataCubit(this._service) : super(const Stream.empty());
+class FarmDataCubit extends Cubit<bool> {
+  FarmDataCubit(this.usecase) : super(false);
+  final FarmDataUseCase usecase;
 
-  final FarmDataService _service;
-  FarmData? farmData;
+  void reset() => usecase.disconnect();
 
-  MqttServerClient getClient() => _service.client;
+  Stream getStream() => usecase.getStream();
+  String getRawData(dynamic data) => usecase.getRawData(data);
 
-  void resetService() => _service.client.disconnect();
-
-  MqttConnectionState getConnectionStatus() {
-    return _service.getConnectionStatus();
+  dynamic getConnectionStatus() {
+    // Set state to rebuild screen
+    emit(!state);
+    return usecase.getConnectionStatus();
   }
 
-  FarmData? getFarmDataFromStream(
-      List<MqttReceivedMessage<MqttMessage?>>? data) {
-    try {
-      FarmData? farmData = _service.getFarmDataFromStream(data);
-      this.farmData = farmData;
+  Stream subscribe(String topic) => usecase.subscribe(topic);
 
-      return farmData;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  FarmData? getFarmData() => farmData;
-
-  void publish(FarmData farmData) => _service.publish(farmData);
+  void publish(String topic, Map<String, dynamic> data) =>
+      usecase.publish(topic, data);
 }
-
-// abstract class CubitState {}
-
-// class CubitInitial extends CubitState {}
-
-// class CubitLoading extends CubitState {}
-
-// class CubitSuccess extends CubitState {
-//   final FarmData data;
-//   CubitSuccess(this.data);
-// }
-
-// class CubitFailed extends CubitState {
-//   final String error;
-//   CubitFailed(this.error);
-// }

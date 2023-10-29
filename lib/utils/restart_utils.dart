@@ -8,7 +8,7 @@ class RestartUtils {
     // Remove any route in the stack
     Navigator.of(context).popUntil((route) => false);
 
-    context.read<FarmDataCubit>().resetService();
+    context.read<FarmDataCubit>().reset();
 
 // Add the first route. Note MyApp() would be your first widget to the app.
     Navigator.push(

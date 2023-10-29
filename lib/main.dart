@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_smart_farm/services/farm_data_service.dart';
 import '../pages/main_page.dart';
 import 'cubit/farm_data_cubit.dart';
 import 'pages/init_page.dart';
+import 'services/base/streamable_event_service.dart';
+import 'services/mqtt_service.dart';
+import 'use_case/farm_data_use_case.dart';
 import 'utils/server_utils.dart';
 
 Future<void> _init() async {
   String serverURL = await ServerUtils.getServerURL();
   int port = await ServerUtils.getPort();
-  String topic = await ServerUtils.getTopic();
 
-  service = FarmDataService(serverURL, port, topic);
+  service = MQTTService(serverURL, port);
+  useCase = FarmDataUseCase(service);
 }
 
-late FarmDataService service;
+late StreamableEventService service;
+late FarmDataUseCase useCase;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _init();
@@ -43,7 +47,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => FarmDataCubit(service)),
+        BlocProvider(create: (context) => FarmDataCubit(useCase)),
       ],
       child: MaterialApp(
         title: 'SmartFarm',
