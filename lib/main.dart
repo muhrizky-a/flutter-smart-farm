@@ -6,27 +6,7 @@ import 'cubit/farm_data_cubit.dart';
 import 'pages/init_page.dart';
 import 'utils/server_utils.dart';
 
-late FarmDataService service;
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  _init();
-  // String serverURL = await ServerUtils.getServerURL();
-  // int port = await ServerUtils.getPort();
-  // String topic = await ServerUtils.getTopic();
-
-  // service = FarmDataService(serverURL, port, topic)..disconnect();
-
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-void _init() async {
+Future<void> _init() async {
   String serverURL = await ServerUtils.getServerURL();
   int port = await ServerUtils.getPort();
   String topic = await ServerUtils.getTopic();
@@ -34,10 +14,28 @@ void _init() async {
   service = FarmDataService(serverURL, port, topic);
 }
 
+late FarmDataService service;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _init();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, this.initService = false});
+  final bool initService;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
-    _init();
+    if (widget.initService) {
+      _init();
+    }
+
     super.initState();
   }
 

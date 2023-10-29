@@ -13,7 +13,7 @@ class RestartUtils {
 // Add the first route. Note MyApp() would be your first widget to the app.
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MyApp()),
+      MaterialPageRoute(builder: (context) => const MyApp(initService: true)),
     );
   }
 }
