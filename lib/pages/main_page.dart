@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_smart_farm/pages/settings_page.dart';
 import 'package:flutter_smart_farm/widgets/sensor_status_card.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import '../constant.dart';
 import '../cubit/farm_data_cubit.dart';
 import '../models/farm_data.dart';
@@ -184,6 +183,29 @@ class _MainPageState extends State<MainPage> {
                 title: "Kelembaban Udara",
                 value: "${farmData.airHumidity} RH",
                 imageUrl: "assets/humidity.png",
+                backgroundColor: greenMainColor,
+              );
+            },
+          ),
+          StreamBuilder(
+            stream: context.read<FarmDataCubit>().subscribe("soilPh"),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                try {
+                  String rawData =
+                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
+
+                  Map<String, dynamic> data = jsonDecode(rawData);
+                  farmData.soilPh = data["soilPh"];
+                } catch (e) {
+                  debugPrint(e.toString());
+                }
+              }
+
+              return SensorStatusCard(
+                title: "pH Tanah",
+                value: "${farmData.soilPh} pH",
+                imageUrl: "assets/soil-ph.png",
                 backgroundColor: greenMainColor,
               );
             },

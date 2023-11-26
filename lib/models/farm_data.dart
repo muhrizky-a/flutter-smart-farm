@@ -4,6 +4,7 @@ class FarmData {
     this.soilHumidity = 0,
     this.temperature = 0,
     this.airHumidity = 0,
+    this.soilPh = 0,
     this.sprinklerEnabled = false,
     this.lampEnabled = false,
   });
@@ -12,6 +13,7 @@ class FarmData {
   int soilHumidity;
   int temperature;
   int airHumidity;
+  int soilPh;
   bool sprinklerEnabled;
   bool lampEnabled;
 
