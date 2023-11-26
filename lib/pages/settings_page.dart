@@ -18,7 +18,7 @@ class _SettingsPageState extends State<SettingsPage> {
       GlobalKey<ScaffoldMessengerState>();
   final TextEditingController serverController = TextEditingController();
   final TextEditingController portController = TextEditingController();
-  final TextEditingController topicController = TextEditingController();
+  // final TextEditingController topicController = TextEditingController();
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void dispose() {
     serverController.dispose();
     portController.dispose();
-    topicController.dispose();
+    // topicController.dispose();
 
     super.dispose();
   }
@@ -42,8 +42,8 @@ class _SettingsPageState extends State<SettingsPage> {
     int port = await ServerUtils.getPort();
     portController.text = port.toString();
 
-    String topic = await ServerUtils.getTopic();
-    topicController.text = topic.toString();
+    // String topic = await ServerUtils.getTopic();
+    // topicController.text = topic.toString();
   }
 
   List<Widget> form() {
@@ -61,13 +61,13 @@ class _SettingsPageState extends State<SettingsPage> {
         hintText: "",
         keyboardType: TextInputType.number,
       ),
-      const SizedBox(height: 16),
-      LabelTextField(
-        text: "Topic",
-        controller: topicController,
-        hintText: "",
-        keyboardType: TextInputType.name,
-      ),
+      // const SizedBox(height: 16),
+      // LabelTextField(
+      //   text: "Topic",
+      //   controller: topicController,
+      //   hintText: "",
+      //   keyboardType: TextInputType.name,
+      // ),
     ];
   }
 
@@ -76,7 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
       onPressed: () async {
         await ServerUtils.setServerURL(serverController.text);
         await ServerUtils.setPort(int.tryParse(portController.text) ?? 1883);
-        await ServerUtils.setTopic(topicController.text);
+        // await ServerUtils.setTopic(topicController.text);
 
         if (context.mounted) {
           // context.read<FarmDataCubit>().setService(
