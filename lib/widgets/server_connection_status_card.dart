@@ -14,16 +14,11 @@ class ServerConnectionStatusCard extends StatefulWidget {
 
 class _ServerConnectionStatusCardState
     extends State<ServerConnectionStatusCard> {
-  late MqttConnectionState status;
-  @override
-  void initState() {
-    status = context.read<FarmDataCubit>().getConnectionStatus();
-    super.initState();
-  }
+  bool isConnected = false;
 
   @override
   Widget build(BuildContext context) {
-    bool isConnected = status == MqttConnectionState.connected;
+    isConnected = context.read<FarmDataCubit>().isConnectedToServer();
 
     return Container(
       width: double.infinity,
@@ -44,7 +39,8 @@ class _ServerConnectionStatusCardState
           ElevatedButton(
             onPressed: () {
               setState(() {
-                status = context.read<FarmDataCubit>().getConnectionStatus();
+                isConnected =
+                    context.read<FarmDataCubit>().isConnectedToServer();
               });
             },
             style: ElevatedButton.styleFrom(

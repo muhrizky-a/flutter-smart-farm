@@ -80,13 +80,18 @@ class MQTTService extends StreamableEventService {
   Stream getStream() => client.updates!;
 
   @override
-  MqttConnectionState? getConnectionStatus() => client.connectionStatus?.state;
+  bool isConnectedToServer() {
+    if (client.connectionStatus == null) {
+      return false;
+    }
+    return client.connectionStatus!.state == MqttConnectionState.connected;
+  }
 
   @override
   Stream subscribe(String topic) {
     if (client.connectionStatus == null) return const Stream.empty();
 
-    if (client.connectionStatus!.state != MqttConnectionState.connected) {
+    if (isConnectedToServer()) {
       return const Stream.empty();
     }
 

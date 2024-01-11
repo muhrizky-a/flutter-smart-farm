@@ -13,10 +13,10 @@ class FarmDataCubit extends Cubit<bool> {
   Stream getStream() => usecase.getStream();
   String getRawData(dynamic data) => usecase.getRawData(data);
 
-  dynamic getConnectionStatus() {
+  bool isConnectedToServer() {
     // Set state to rebuild screen
     emit(!state);
-    return usecase.getConnectionStatus();
+    return usecase.isConnectedToServer();
   }
 
   Stream subscribe(String topic) => usecase.subscribe(topic);

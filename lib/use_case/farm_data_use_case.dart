@@ -9,7 +9,7 @@ class FarmDataUseCase {
   Stream getStream() => service.getStream();
   String getRawData(dynamic data) => service.getRawData(data);
 
-  dynamic getConnectionStatus() => service.getConnectionStatus();
+  bool isConnectedToServer() => service.isConnectedToServer();
 
   Stream subscribe(String topic) => service.subscribe(topic);
 
