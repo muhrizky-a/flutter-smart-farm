@@ -26,6 +26,11 @@ class _MainPageState extends State<MainPage> {
     farmData = FarmData();
   }
 
+  Map<String, dynamic> getStreamedData(dynamic data) {
+    String rawData = context.read<FarmDataCubit>().getRawData(data);
+    return jsonDecode(rawData);
+  }
+
   Widget banner() {
     return Container(
       height: 200,
@@ -123,10 +128,7 @@ class _MainPageState extends State<MainPage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 try {
-                  String rawData =
-                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                  Map<String, dynamic> data = jsonDecode(rawData);
+                  Map<String, dynamic> data = getStreamedData(snapshot.data!);
                   farmData.soilHumidity = data["soilHumidity"];
                 } catch (e) {
                   debugPrint(e.toString());
@@ -146,10 +148,7 @@ class _MainPageState extends State<MainPage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 try {
-                  String rawData =
-                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                  Map<String, dynamic> data = jsonDecode(rawData);
+                  Map<String, dynamic> data = getStreamedData(snapshot.data!);
                   farmData.temperature = data["airTemperature"];
                 } catch (e) {
                   debugPrint(e.toString());
@@ -169,10 +168,7 @@ class _MainPageState extends State<MainPage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 try {
-                  String rawData =
-                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                  Map<String, dynamic> data = jsonDecode(rawData);
+                  Map<String, dynamic> data = getStreamedData(snapshot.data!);
                   farmData.airHumidity = data["airHumidity"];
                 } catch (e) {
                   debugPrint(e.toString());
@@ -192,10 +188,7 @@ class _MainPageState extends State<MainPage> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 try {
-                  String rawData =
-                      context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                  Map<String, dynamic> data = jsonDecode(rawData);
+                  Map<String, dynamic> data = getStreamedData(snapshot.data!);
                   farmData.soilPh = data["soilPh"];
                 } catch (e) {
                   debugPrint(e.toString());
@@ -228,10 +221,7 @@ class _MainPageState extends State<MainPage> {
             String topic = "sprinklerEnabled";
             if (snapshot.hasData) {
               try {
-                String rawData =
-                    context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                Map<String, dynamic> data = jsonDecode(rawData);
+                Map<String, dynamic> data = getStreamedData(snapshot.data!);
                 farmData.sprinklerEnabled = data[topic];
               } catch (e) {
                 debugPrint(e.toString());
@@ -267,10 +257,7 @@ class _MainPageState extends State<MainPage> {
 
             if (snapshot.hasData) {
               try {
-                String rawData =
-                    context.read<FarmDataCubit>().getRawData(snapshot.data!);
-
-                Map<String, dynamic> data = jsonDecode(rawData);
+                Map<String, dynamic> data = getStreamedData(snapshot.data!);
                 farmData.lampEnabled = data[topic];
               } catch (e) {
                 debugPrint(e.toString());

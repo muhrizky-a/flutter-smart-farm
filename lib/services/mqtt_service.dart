@@ -107,10 +107,16 @@ class MQTTService extends StreamableEventService {
     return client.updates!;
   }
 
+  @override
   String getRawData(dynamic data) {
     final recMess = data![0].payload as MqttPublishMessage;
     String rawData =
         MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+    return rawData;
+  }
+
+  String getProcessedData(dynamic data) {
+    String rawData = getRawData(data);
     return rawData;
   }
 
