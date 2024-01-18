@@ -1,9 +1,7 @@
 abstract class StreamableEventService {
   void connect();
   void disconnect();
-  Stream getStream();
   bool isConnectedToServer();
-  String getRawData(dynamic data);
-  Stream subscribe(String topic);
+  void subscribe(String topic, void Function(String) onSubscribe);
   void publish(String topic, String rawValue);
 }

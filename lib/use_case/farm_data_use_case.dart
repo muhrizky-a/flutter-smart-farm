@@ -6,12 +6,10 @@ class FarmDataUseCase {
 
   StreamableEventService service;
 
-  Stream getStream() => service.getStream();
-  String getRawData(dynamic data) => service.getRawData(data);
-
   bool isConnectedToServer() => service.isConnectedToServer();
 
-  Stream subscribe(String topic) => service.subscribe(topic);
+  void subscribe(String topic, void Function(String) onSubscribe) =>
+      service.subscribe(topic, onSubscribe);
 
   void publish(String topic, Map<String, dynamic> data) {
     service.publish(topic, jsonEncode(data));

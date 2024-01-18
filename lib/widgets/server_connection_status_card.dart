@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import '../constant.dart';
-import '../cubit/farm_data_cubit.dart';
+import '../cubit/server_connection_cubit.dart';
 
 class ServerConnectionStatusCard extends StatefulWidget {
   const ServerConnectionStatusCard({super.key});
@@ -18,7 +17,7 @@ class _ServerConnectionStatusCardState
 
   @override
   Widget build(BuildContext context) {
-    isConnected = context.read<FarmDataCubit>().isConnectedToServer();
+    isConnected = context.read<ServerConnectionCubit>().isConnectedToServer();
 
     return Container(
       width: double.infinity,
@@ -40,7 +39,7 @@ class _ServerConnectionStatusCardState
             onPressed: () {
               setState(() {
                 isConnected =
-                    context.read<FarmDataCubit>().isConnectedToServer();
+                    context.read<ServerConnectionCubit>().isConnectedToServer();
               });
             },
             style: ElevatedButton.styleFrom(

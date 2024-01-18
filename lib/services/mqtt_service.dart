@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -77,9 +76,6 @@ class MQTTService extends StreamableEventService {
   void disconnect() => client.disconnect();
 
   @override
-  Stream getStream() => client.updates!;
-
-  @override
   bool isConnectedToServer() {
     if (client.connectionStatus == null) {
       return false;
@@ -88,41 +84,34 @@ class MQTTService extends StreamableEventService {
   }
 
   @override
-  Stream subscribe(String topic) {
-    if (client.connectionStatus == null) return const Stream.empty();
-
-    if (isConnectedToServer()) {
-      return const Stream.empty();
+  void subscribe(String topic, Function(String) onSubscribe) {
+    // if (client.connectionStatus == null) return;
+    while (client.connectionStatus == null) {
+      debugPrint("waiting to connecting to host...");
     }
 
-    client.subscribe(topic, MqttQos.atLeastOnce);
-    // if (client.updates == null) {
-    //   return const Stream.empty();
+    // while (client.connectionStatus!.state != MqttConnectionState.connected) {
+    //   debugPrint("connecting to host for subscribing $topic...");
     // }
 
+    debugPrint("subscribing $topic...");
+
+    client.subscribe(topic, MqttQos.atLeastOnce);
+    if (client.updates == null) return;
+    debugPrint("subscribed $topic...");
     client.updates!.listen((List<MqttReceivedMessage<MqttMessage?>>? c) {
+      debugPrint("see data $topic...");
+      // Process the raw data
       final recMess = c![0].payload as MqttPublishMessage;
       String payload =
           MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-      debugPrint(server);
+
       debugPrint(
           'Received message: topic is ${c[0].topic}, payload is $payload');
+
+      // run the handler on subscribing the data
+      onSubscribe(payload);
     });
-
-    return client.updates!;
-  }
-
-  @override
-  String getRawData(dynamic data) {
-    final recMess = data![0].payload as MqttPublishMessage;
-    String rawData =
-        MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
-    return rawData;
-  }
-
-  String getProcessedData(dynamic data) {
-    String rawData = getRawData(data);
-    return rawData;
   }
 
   @override
