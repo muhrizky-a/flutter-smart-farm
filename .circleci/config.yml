@@ -5,11 +5,6 @@ orbs:
   android: circleci/android@1.0.3
   flutter: circleci/flutter@1.1.0
 
-executors:
-  docker:
-    docker:
-      - image: docker:stable
-
 # Define a job to be invoked later in a workflow.
 jobs:
   build-app:
@@ -38,3 +33,9 @@ jobs:
 
       - store_artifacts:
           path: build/app/outputs/flutter-apk/app-release.apk
+
+# Orchestrate jobs using workflows
+workflows:
+  build-the-app:
+    jobs:
+      - build-app
