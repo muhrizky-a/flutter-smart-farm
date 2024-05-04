@@ -44,7 +44,7 @@ jobs:
             # echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
             export GOOGLE_SERVICES_JSON="$GCLOUD_SERVICE_KEY"
             echo $GOOGLE_SERVICES_JSON | base64 -di > /home/circleci/gcloud-service-key.json
-      -  error
+      - gcp-cli/setup:
           version: 404.0.0
       - run:
           name: Setup Google services
