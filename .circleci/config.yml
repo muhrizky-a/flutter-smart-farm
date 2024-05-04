@@ -38,15 +38,17 @@ jobs:
   deliver-app:
     executor: gcp-cli/default
     steps:
-      
+      - run:
+          name: Get service account
+          command: |
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
+      - gcp-cli/setup:
+          version: 404.0.0
       - run:
           name: Setup Google services
           command: |
-            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /tmp/gcloud-service-key.json
-            gcloud auth activate-service-account --key-file=/tmp/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=/home/circleci/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
-      - gcp-cli/setup:
-          version: 404.0.0
       - run:
           name: Upload file to Cloud Storage
           command: |
