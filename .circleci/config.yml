@@ -1,0 +1,40 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+version: 2.1
+
+orbs:
+  android: circleci/android@1.0.3
+  flutter: circleci/flutter@1.1.0
+
+executors:
+  docker:
+    docker:
+      - image: docker:stable
+
+# Define a job to be invoked later in a workflow.
+jobs:
+  build-app:
+    executor:
+      name: android/android-machine
+      resource-class: medium
+    
+    steps:
+      - checkout
+
+      - flutter/install_sdk: 
+          version: 3.7.0
+
+      - flutter/install_pub:
+          cache-version: v1
+
+      - run:
+          name: Flutter pub get
+          command: |
+            flutter pub get
+
+      - run:
+          name: Build APK
+          command: |
+            flutter build apk
+
+      - store_artifacts:
+          path: build/app/outputs/flutter-apk/app-release.apk
