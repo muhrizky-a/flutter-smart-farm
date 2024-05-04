@@ -11,7 +11,8 @@ jobs:
   build-app:
     executor:
       name: android/android-machine
-      resource_class: medium
+      resource-class: medium
+      tag: 2023.03.1
     
     steps:
       - checkout
