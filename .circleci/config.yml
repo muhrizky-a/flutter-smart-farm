@@ -41,10 +41,10 @@ jobs:
       - run:
           name: Get service account
           command: |
-            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
+            # echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
             export GOOGLE_SERVICES_JSON="$GCLOUD_SERVICE_KEY"
-            echo $GOOGLE_SERVICES_JSON | base64 -di > app/google-services.json
-      - gcp-cli/setup:
+            echo $GOOGLE_SERVICES_JSON | base64 -di > /home/circleci/gcloud-service-key.json
+      -  error
           version: 404.0.0
       - run:
           name: Setup Google services
