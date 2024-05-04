@@ -8,11 +8,11 @@ orbs:
 
 # Define a job to be invoked later in a workflow.
 jobs:
-  build-app:
+  build:
     executor:
       name: android/android-machine
       resource-class: medium
-      tag: 2023.03.1
+      tag: 2024.01.1
     
     steps:
       - checkout
@@ -36,7 +36,7 @@ jobs:
       - store_artifacts:
           path: build/app/outputs/flutter-apk/app-release.apk
     
-  deliver-app:
+  deliver:
     executor: gcp-cli/default
 
     resource_class: small
@@ -62,5 +62,7 @@ jobs:
 workflows:
   build-the-app:
     jobs:
-      - build-app
-      - deliver-app
+      - build
+      - deliver:
+          requires:
+            - build
