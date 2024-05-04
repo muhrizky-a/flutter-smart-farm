@@ -37,13 +37,15 @@ jobs:
     
   deliver-app:
     executor: gcp-cli/default
+
+    resource-class: medium
+
     steps:
       - gcp-cli/setup:
           version: 404.0.0
       - run:
           name: Setup Google services
           command: |
-            echo "$GOOGLE_PROJECT_ID"
             # echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
             # gcloud auth activate-service-account --key-file=/home/circleci/gcloud-service-key.json
             # gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
@@ -51,18 +53,15 @@ jobs:
           name: Upload file to Cloud Storage
           command: |
             current_date=$(date +'%Y%m%d')
-            # full_apk_name=$APK_NAME-$current_date.apk
-            full_apk_name=hello.txt
-            echo "hi" > $full_apk_name
-            gsutil cp $full_apk_name gs://$BUCKET_OBJECT_PATH/$full_apk_name
-            # gsutil cp build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
+            full_apk_name=$APK_NAME-$current_date.apk
+            gsutil cp build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
             gsutil acl ch -u AllUsers:R gs://$BUCKET_OBJECT_PATH/$full_apk_name
 
 # Orchestrate jobs using workflows
 workflows:
   build-the-app:
     jobs:
-      # - build-app
+      - build-app
       - deliver-app
-      #     requires:
-      #       - build-app
+          requires:
+            - build-app
