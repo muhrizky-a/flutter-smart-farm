@@ -38,7 +38,7 @@ jobs:
   deliver-app:
     executor: gcp-cli/default
 
-    resource-class: medium
+    resource-class: small
 
     steps:
       - gcp-cli/setup:
