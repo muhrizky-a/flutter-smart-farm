@@ -47,6 +47,7 @@ jobs:
       - run:
           name: Setup Google services
           command: |
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > /home/circleci/gcloud-service-key.json
             gcloud auth activate-service-account --key-file=/home/circleci/gcloud-service-key.json
             gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
