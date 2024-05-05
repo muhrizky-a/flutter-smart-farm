@@ -37,11 +37,20 @@ jobs:
             mkdir build
             echo "hi" > build/echo-output.txt
 
-      - store_artifacts:
-          path: build/echo-output.txt
+      # - store_artifacts:
+      #     path: build/echo-output.txt
 
       # - store_artifacts:
       #     path: build/app/outputs/flutter-apk/app-release.apk
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory in the execution
+          # environment which is taken to be the root directory of the workspace.
+          root: build
+          # Must be relative path from root
+          paths:
+            - echo-output.txt
+
     
   deliver:
     executor: gcp-cli/default
@@ -58,6 +67,9 @@ jobs:
             # gcloud auth activate-service-account --key-file=/home/circleci/gcloud-service-key.json
             # gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
 
+      - attach_workspace:
+          at: /tmp/build
+
       - run:
           name: Upload file to Cloud Storage
           command: |
@@ -65,7 +77,7 @@ jobs:
             ls
             current_date=$(date +'%Y%m%d')
             full_apk_name=$APK_NAME-$current_date.apk
-            # ls build
+            ls build
             gsutil cp build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
             gsutil acl ch -u AllUsers:R gs://$BUCKET_OBJECT_PATH/$full_apk_name
 
