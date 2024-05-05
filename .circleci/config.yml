@@ -31,10 +31,16 @@ jobs:
       - run:
           name: Build APK
           command: |
-            flutter build apk
+            # flutter build apk
+            pwd
+            ls
+            echo "hi" > build/echo-output.txt
 
       - store_artifacts:
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/echo-output.txt
+
+      # - store_artifacts:
+      #     path: build/app/outputs/flutter-apk/app-release.apk
     
   deliver:
     executor: gcp-cli/default
@@ -57,6 +63,8 @@ jobs:
       - run:
           name: Upload file to Cloud Storage
           command: |
+            pwd
+            ls
             ls /workspace
             current_date=$(date +'%Y%m%d')
             full_apk_name=$APK_NAME-$current_date.apk
@@ -67,8 +75,7 @@ jobs:
 workflows:
   build-the-app:
     jobs:
-      - deliver
-      # - build
-      # - deliver:
-      #     requires:
-      #       - build
+      - build
+      - deliver:
+          requires:
+            - build
