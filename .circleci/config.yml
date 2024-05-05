@@ -17,16 +17,16 @@ jobs:
     steps:
       - checkout
 
-      - flutter/install_sdk: 
-          version: 3.7.0
+      # - flutter/install_sdk: 
+      #     version: 3.7.0
 
-      - flutter/install_pub:
-          cache-version: v1
+      # - flutter/install_pub:
+      #     cache-version: v1
 
-      - run:
-          name: Flutter pub get
-          command: |
-            flutter pub get
+      # - run:
+      #     name: Flutter pub get
+      #     command: |
+      #       flutter pub get
 
       - run:
           name: Build APK
@@ -59,7 +59,7 @@ jobs:
             # gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
 
       - attach_workspace:
-          at: /workspace
+          at: /tmp
 
       - run:
           name: Upload file to Cloud Storage
