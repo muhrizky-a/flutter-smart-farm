@@ -70,9 +70,7 @@ jobs:
             current_date=$(date +'%Y%m%d')
             full_apk_name=$APK_NAME-$current_date.apk
 
-            apk_dir=/tmp/build/app/outputs/flutter-apk/app-release.apk
-
-            gsutil cp apk_dir gs://$BUCKET_OBJECT_PATH/$full_apk_name
+            gsutil cp /tmp/build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
             gsutil acl ch -u AllUsers:R gs://$BUCKET_OBJECT_PATH/$full_apk_name
 
 # Orchestrate jobs using workflows
