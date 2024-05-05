@@ -66,7 +66,7 @@ jobs:
           command: |
             pwd
             ls
-            ls /workspace
+            ls build
             current_date=$(date +'%Y%m%d')
             full_apk_name=$APK_NAME-$current_date.apk
             gsutil cp build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
