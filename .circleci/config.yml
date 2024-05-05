@@ -67,7 +67,8 @@ jobs:
 workflows:
   build-the-app:
     jobs:
+    - deliver:
       # - build
-      - deliver:
+      # - deliver:
       #     requires:
       #       - build
