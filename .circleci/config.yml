@@ -49,8 +49,8 @@ jobs:
     resource_class: small
 
     steps:
-      - gcp-cli/setup:
-          version: 404.0.0
+      # - gcp-cli/setup:
+      #     version: 404.0.0
       # - run:
       #     name: Setup Google services
       #     command: |
@@ -68,7 +68,7 @@ jobs:
             ls
             current_date=$(date +'%Y%m%d')
             full_apk_name=$APK_NAME-$current_date.apk
-            ls build
+            # ls build
             gsutil cp build/app/outputs/flutter-apk/app-release.apk gs://$BUCKET_OBJECT_PATH/$full_apk_name
             gsutil acl ch -u AllUsers:R gs://$BUCKET_OBJECT_PATH/$full_apk_name
 
