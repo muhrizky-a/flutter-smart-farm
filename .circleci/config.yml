@@ -58,9 +58,6 @@ jobs:
             # gcloud auth activate-service-account --key-file=/home/circleci/gcloud-service-key.json
             # gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
 
-      - attach_workspace:
-          at: /tmp/build
-
       - run:
           name: Upload file to Cloud Storage
           command: |
